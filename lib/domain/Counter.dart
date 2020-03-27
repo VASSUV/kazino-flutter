@@ -5,13 +5,21 @@ enum CounterState {
 
 class Counter {
   static final Counter _shared = Counter._internal();
-
-  factory Counter() {
-    return _shared;
-  }
-
+  factory Counter() { return _shared; }
   Counter._internal();
+
+  List<int> list = [];
+  List<int> listState = [];
+
+  void add(int num) {
+    list.add(num);
+    listState.insert (0, R.drawable.button);
+    reCount(true, num);
+    listState[0] = drawableResIdNums[num];
+  }
 }
+
+
 
 
 //
