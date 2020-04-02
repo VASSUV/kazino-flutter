@@ -14,7 +14,7 @@ class KazinoWidget extends StatelessWidget {
 
     Constants.init(context);
 
-    return PlatformScaffold(
+    return Scaffold(
         body: SafeArea(
             child: PageView(
               controller: PageController(initialPage: 0),

@@ -1,6 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'page/TablePage.dart';
+import 'page/TablePage.dart';
+
 extension ContextRoute on BuildContext {
   Function routerTo<T extends StatelessWidget>(T page) {
     return () {
@@ -29,5 +32,21 @@ extension WidgetExtension on Widget {
         Spacer(flex: flexScale,),
       ]
     );
+  }
+
+  Widget row(List<Widget> childs) {
+    return Row(children: childs);
+  }
+
+  Widget column(List<Widget> childs) {
+    return Column(children: childs);
+  }
+}
+
+extension ListExtension<T> on List<T> {
+  void fill(T func(int line)) {
+    for (int i = 0; i < this.length; i++) {
+      this[i] = func(i+1);
+    }
   }
 }

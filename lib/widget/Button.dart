@@ -12,7 +12,7 @@ class Button extends StatelessWidget {
     Key key,
     this.title,
     this.gradient = const LinearGradient(colors: [Colors.blueGrey, Colors.grey]),
-    this.width = 110.0,
+    this.width = 200.0,
     this.height = 50.0,
     this.onPressed,
   }) : super(key: key);

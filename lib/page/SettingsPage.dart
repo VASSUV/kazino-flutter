@@ -17,23 +17,22 @@ class SettingsPage extends StatelessWidget {
             children: <Widget>[
               Text("Настройки",
                   textAlign: TextAlign.center, textScaleFactor: 3),
-              Row(
-                children: <Widget>[
-                  Spacer(),
-                  Button(title: "Очистить", onPressed: () {}),
-                  Spacer(),
-                  Button(title: "Сохранить", onPressed: () {}),
-                  Spacer(),
-                  Button(title: "Открыть", onPressed: () {}),
-                  Spacer()
-                ],
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Button(title: "Очистить", onPressed: () {
+                  _showDialog(context, "Очистка поля", "Состояние прохождения нельзя будет вернуть, очистить поле?", () {
+
+                  });
+                }),
               ),
-              Container(height: 20),
-              Text("Параметр для расчета холодных чисел, от 15 до 100", textAlign: TextAlign.center),
-              _buildSlider(),
-              _buildSliderDescription(),
-              _buildHotCheckBox(),
-              _buildTwiceCheckBox()
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Button(title: "Сменить режим", onPressed: () {
+                  _showDialog(context, "Смена режима", "Прохождение будет сброшено и режим будет сменен на 38 чисел, сменить режим?", () {
+
+                  });
+                }),
+              ),
             ],
           ),
         ),
@@ -41,55 +40,77 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  StreamBuilder _buildSliderDescription() {
-    return StreamBuilder(
-        stream: _bloc.sliderChange,
-        builder: (context, snapshot) {
-          return Text("${_bloc.sliderValue.round()}", textScaleFactor: 2, textAlign: TextAlign.center);
-        });
+  void _showDialog(BuildContext context, String title, String description, Function onApply) {
+    // flutter defined function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: Text(title),
+          content: Text(description),
+          actions: <Widget>[
+            FlatButton(
+              child: Text("Да"),
+              onPressed: () {
+                Navigator.of(context).pop();
+                onApply();
+              }),
+          ],
+        );
+      },
+    );
   }
 
-  StreamBuilder _buildTwiceCheckBox() {
-    return StreamBuilder(
-        stream: _bloc.twiceChange,
-        builder: (context, snapshot) {
-          return Row(children: <Widget>[
-            Checkbox(value: _bloc.twiceValue, onChanged: _bloc.onTwiceChanged),
-            Text(
-              "Показывать числа выпавшие 2 раза за 37 ходов в течении 37 ходов",
-            )
-          ]);
-        });
-  }
-
-  StreamBuilder _buildHotCheckBox() {
-    return StreamBuilder(
-        stream: _bloc.hotChange,
-        builder: (context, snapshot) {
-          return Row(children: <Widget>[
-            Checkbox(value: _bloc.hotValue, onChanged: _bloc.onHotChanged),
-            Text(
-              "Показывать горячие числа (3 и более выпадений за 50 ходов)",
-            )
-          ]);
-        });
-  }
-
-  StreamBuilder _buildSlider() {
-    return StreamBuilder(
-        stream: _bloc.sliderChange,
-        builder: (context, snapshot) {
-          return Slider(
-              value: _bloc.sliderValue,
-              min: 15.0,
-              max: 100.0,
-              activeColor: Colors.red,
-              inactiveColor: Colors.black,
-              label: '${_bloc.sliderValue} f',
-              onChanged: _bloc.onSliderChanged,
-              semanticFormatterCallback: (double newValue) {
-                return '${newValue.round()} 8';
-              });
-        });
-  }
+//
+//  StreamBuilder _buildSliderDescription() {
+//    return StreamBuilder(
+//        stream: _bloc.sliderChange,
+//        builder: (context, snapshot) {
+//          return Text("${_bloc.sliderValue.round()}", textScaleFactor: 2, textAlign: TextAlign.center);
+//        });
+//  }
+//  StreamBuilder _buildTwiceCheckBox() {
+//    return StreamBuilder(
+//        stream: _bloc.twiceChange,
+//        builder: (context, snapshot) {
+//          return Row(children: <Widget>[
+//            Checkbox(value: _bloc.twiceValue, onChanged: _bloc.onTwiceChanged),
+//            Text(
+//              "Показывать числа выпавшие 2 раза за 37 ходов в течении 37 ходов",
+//            )
+//          ]);
+//        });
+//  }
+//
+//  StreamBuilder _buildHotCheckBox() {
+//    return StreamBuilder(
+//        stream: _bloc.hotChange,
+//        builder: (context, snapshot) {
+//          return Row(children: <Widget>[
+//            Checkbox(value: _bloc.hotValue, onChanged: _bloc.onHotChanged),
+//            Text(
+//              "Показывать горячие числа (3 и более выпадений за 50 ходов)",
+//            )
+//          ]);
+//        });
+//  }
+//
+//  StreamBuilder _buildSlider() {
+//    return StreamBuilder(
+//        stream: _bloc.sliderChange,
+//        builder: (context, snapshot) {
+//          return Slider(
+//              value: _bloc.sliderValue,
+//              min: 15.0,
+//              max: 100.0,
+//              activeColor: Colors.red,
+//              inactiveColor: Colors.black,
+//              label: '${_bloc.sliderValue} f',
+//              onChanged: _bloc.onSliderChanged,
+//              semanticFormatterCallback: (double newValue) {
+//                return '${newValue.round()} 8';
+//              });
+//        });
+//  }
 }
