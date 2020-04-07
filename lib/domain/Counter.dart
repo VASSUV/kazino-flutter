@@ -90,4 +90,16 @@ class Counter {
       state.type = CellStateType.lightBlue;
     }
   }
+
+  void reset() {
+    progressList.clear();
+    states.forEach((state) => _reset(state));
+    skippedDozen = List.generate(3, (index) => 0);
+    skippedLine = List.generate(3, (index) => 0);
+  }
+
+  void changeBingoState() {
+    isBingo38 = !isBingo38;
+    reset();
+  }
 }

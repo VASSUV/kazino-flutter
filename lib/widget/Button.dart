@@ -6,7 +6,10 @@ class Button extends StatelessWidget {
   final Gradient gradient;
   final double width;
   final double height;
+  final bool enabled;
   final Function onPressed;
+
+  Gradient get disableGradient => LinearGradient(colors: [Colors.black12, Colors.black12]);
 
   const Button({
     Key key,
@@ -14,14 +17,35 @@ class Button extends StatelessWidget {
     this.gradient = const LinearGradient(colors: [Colors.blueGrey, Colors.grey]),
     this.width = 200.0,
     this.height = 50.0,
+    this.enabled = true,
     this.onPressed,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final textWidget = Center(
+      child: Text(title, style: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold
+      ),),
+    );
+    Widget content;
+    if(enabled) {
+      content = Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onPressed,
+            child: textWidget
+          )
+      );
+    } else {
+      content = textWidget;
+    }
+
     return Container( width: width, height: 50.0,
       decoration: BoxDecoration(
-          gradient: gradient,
+          gradient: enabled ? gradient : disableGradient,
           borderRadius: BorderRadius.all(Radius.circular(5.0)),
           boxShadow: [
             BoxShadow(
@@ -31,18 +55,7 @@ class Button extends StatelessWidget {
             ),
           ]
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-            onTap: onPressed,
-            child: Center(
-              child: Text(title, style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold
-              ),),
-            )),
-      ),
+      child: content
     );
   }
 }

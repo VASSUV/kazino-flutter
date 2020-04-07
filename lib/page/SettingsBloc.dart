@@ -1,31 +1,24 @@
 
 import 'dart:async';
 
+import 'package:kazino/domain/Counter.dart';
+import 'package:kazino/page/BettingDictionary.dart';
+
 class SettingsBloc {
-  double sliderValue = 15.0;
-  bool hotValue = false;
-  bool twiceValue = false;
 
-  final _outputSlider = StreamController.broadcast();
-  final _outputHot = StreamController.broadcast();
-  final _outputTwice = StreamController.broadcast();
+  var _output = StreamController.broadcast();
+  Stream get update => _output.stream;
 
-  Stream get sliderChange => _outputSlider.stream;
-  Stream get hotChange => _outputSlider.stream;
-  Stream get twiceChange => _outputSlider.stream;
-
-  void onSliderChanged(double value) {
-    sliderValue = value;
-    _outputSlider.sink.add(null);
+  void onClearChanged() {
+    Counter.shared.reset();
   }
 
-  void onHotChanged(bool value) {
-    hotValue = value;
-    _outputSlider.sink.add(null);
+  void onChange() {
+    Counter.shared.changeBingoState();
   }
 
-  void onTwiceChanged(bool value) {
-    twiceValue = value;
-    _outputSlider.sink.add(null);
+  void onChangeRow(int row) {
+    BettingDictionary.bettSelected = row;
+    _output.add(null);
   }
 }

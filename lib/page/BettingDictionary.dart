@@ -3,14 +3,19 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 
 class BettingDictionary {
+  static var bettSelected = 1;
 
-  static List<int> _betts = [
-    0, 0, 0, 0, 0, 0, 0, 500, 500, 100,
+  static List<int> _betts1 = [
+    0, 0, 0, 0, 0, 0, 0, 500, 500, 1000,
     1500, 2000, 3000, 4500, 7000, 10500, 17500, 23000, 35000
   ];
 
-  static String betting(int skipped) {
-    int bett = _betting(skipped);
+  static List<int> _betts2 = [
+    0, 0, 0, 0, 0, 0, 0, 200, 300, 500, 1000,
+    1500, 2000, 3000, 4500, 7000, 10500, 17500, 23000, 35000
+  ];
+
+  static String _betting(int bett) {
     if (bett >= 1000) {
       double value = bett / 1000;
       if (value >= 1000) {
@@ -25,13 +30,8 @@ class BettingDictionary {
     }
   }
 
-  static int _betting(int skipped) {
-    if (skipped < 0) {
-      return 0;
-    } else if (skipped < _betts.length) {
-      return _betts[skipped];
-    } else {
-      return _betts.last;
-    }
+  static String betting(int skipped) {
+    final betts = bettSelected == 1 ? _betts1 : _betts2;
+    return _betting(skipped < 0 ? 0 : (skipped < betts.length ? betts[skipped] : betts.last));
   }
 }

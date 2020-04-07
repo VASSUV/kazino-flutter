@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:kazino/domain/Counter.dart';
+import 'package:kazino/page/BettingDictionary.dart';
 import 'package:kazino/widget/Button.dart';
 
 import 'SettingsBloc.dart';
@@ -9,34 +11,60 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: <Widget>[
-              Text("Настройки",
-                  textAlign: TextAlign.center, textScaleFactor: 3),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Button(title: "Очистить", onPressed: () {
-                  _showDialog(context, "Очистка поля", "Состояние прохождения нельзя будет вернуть, очистить поле?", () {
+    return StreamBuilder(
+      stream: _bloc.update,
+      builder: (context, snapshot) {
+        return ListView(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: <Widget>[
+                  Text("Настройки",
+                      textAlign: TextAlign.center, textScaleFactor: 3),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Button(title: "Очистить", onPressed: () {
+                      _showDialog(context, "Очистка поля", "Состояние прохождения нельзя будет вернуть, очистить поле?", _bloc.onClearChanged);
+                    }),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Button(title: "Сменить режим", onPressed: () {
+                      _showDialog(context, "Смена режима", "Прохождение будет сброшено и режим будет сменен на ${Counter.shared.isBingo38 ? 37 : 38} чисел, сменить режим?", _bloc.onChange);
+                    }),
+                  ),
 
-                  });
-                }),
+                  Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Center(
+                      child: Text("Последовательности")
+                    )
+                  ),
+                  Row(
+                    children: <Widget>[
+                      Expanded(child: Opacity(opacity: 0)),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Button(title: "№ 1", enabled: BettingDictionary.bettSelected == 2, onPressed: () {
+                           _bloc.onChangeRow(1);
+                        }),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Button(title: "№ 2", enabled: BettingDictionary.bettSelected == 1, onPressed: () {
+                          _bloc.onChangeRow(2);
+                        }),
+                      ),
+                      Expanded(child: Opacity(opacity: 0))
+                    ],
+                  )
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Button(title: "Сменить режим", onPressed: () {
-                  _showDialog(context, "Смена режима", "Прохождение будет сброшено и режим будет сменен на 38 чисел, сменить режим?", () {
-
-                  });
-                }),
-              ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      }
     );
   }
 

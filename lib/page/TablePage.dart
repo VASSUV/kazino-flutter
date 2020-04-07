@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:kazino/domain/Counter.dart';
 import 'package:kazino/page/BettingDictionary.dart';
 import 'package:kazino/widget/CustomBorder.dart';
 
@@ -8,18 +9,37 @@ import '../Constants.dart';
 import '../WidgetExtensions.dart';
 import 'TableBloc.dart';
 
+class TablePageSizes {
+  double cellWidth;
+  double cellText;
+  double cellTextSkip;
+  double bingoesText;
+  double radius;
+  double stepText;
+  double badge;
+
+  TablePageSizes() {
+    cellWidth = Constants.width / 15.5;
+    cellText = cellWidth / 2.5;
+    cellTextSkip = cellWidth / 3;
+    radius = cellWidth / 10;
+    stepText = cellWidth / 2;
+    bingoesText =  Counter.shared.isBingo38 ? cellWidth / 4 : cellWidth / 3;
+    badge = cellWidth / 2;
+  }
+}
+
 class TablePage extends StatelessWidget {
 
   final _bloc = TableBloc();
+  final _sizes = TablePageSizes();
 
-  final widthCell = Constants.width / 15.5;
   final white = Colors.white;
-  final side = BorderSide(
-      width: 2, color: Colors.white, style: BorderStyle.solid);
-  final radius = Radius.circular(Constants.width / 155);
-  final radiusValue = Constants.width / 155;
-  final borderAll = Border.all(
-      width: 2, color: Colors.white, style: BorderStyle.solid);
+
+  final side = BorderSide(width: 2, color: Colors.white, style: BorderStyle.solid);
+  final borderAll = Border.all(width: 2, color: Colors.white, style: BorderStyle.solid);
+
+  Radius get radius => Radius.circular(_sizes.radius);
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +51,7 @@ class TablePage extends StatelessWidget {
             StreamBuilder(
               stream: _bloc.cellUpdate,
               builder: (context, snapshot) {
-                return Text("Ход: ${_bloc.countProgress + 1}" , style: TextStyle(fontSize: widthCell / 2, fontWeight: FontWeight.w500, color: Colors.white));
+                return Text("Ход: ${_bloc.countProgress + 1}" , style: TextStyle(fontSize: _sizes.stepText, fontWeight: FontWeight.w500, color: Colors.white));
               }
             )
           )),
@@ -39,11 +59,10 @@ class TablePage extends StatelessWidget {
             padding: EdgeInsets.all(16.0),
             child: Center(
               child: Container(
-                height: widthCell * 4,
+                height: _sizes.cellWidth * 4,
                 child: row(<Widget>[
                   _buildBingoes(),
-                  _roundedWithoutTopLeftBlock(
-                      _buildDozen(0), scaleY: 4, scaleX: 4),
+                  _roundedWithoutTopLeftBlock(_buildDozen(0), scaleY: 4, scaleX: 4),
                   Spacer(),
                   _roundedBlock(_buildDozen(1), scaleY: 4, scaleX: 4),
                   Spacer(),
@@ -63,11 +82,10 @@ class TablePage extends StatelessWidget {
   }
 
   Widget _buildBingoes() {
-    final size = _bloc.isBingo38 ? widthCell / 4 : widthCell / 3;
-    var widgets = <Widget>[ _buildZeroCell(37, size)];
+    var widgets = <Widget>[ _buildZeroCell(37, _sizes.bingoesText)];
     if (_bloc.isBingo38) {
       widgets.insert(0, _buildHorizontalSide());
-      widgets.insert(0, _buildZeroCell(38, size));
+      widgets.insert(0, _buildZeroCell(38, _sizes.bingoesText));
     }
     return column(<Widget>[
       _leftBlock(column(widgets), scaleY: 3)
@@ -84,7 +102,7 @@ class TablePage extends StatelessWidget {
   }
 
   Widget _buildRow(int line) {
-    final size = widthCell - 4;
+    final size = _sizes.cellWidth - 4;
     return Padding(
       padding: const EdgeInsets.all(2.0),
       child: Container(
@@ -149,9 +167,8 @@ class TablePage extends StatelessWidget {
   }
 
   Widget _bettBadge(String bett, Alignment alignment) {
-    final size = widthCell / 2;
     return Align(alignment: alignment, child: Container(
-      height: size, width: size,
+      height: _sizes.badge, width: _sizes.badge,
       child: CustomPaint(painter: ShapesPainter(text: bett))
     ));
   }
@@ -206,7 +223,7 @@ class TablePage extends StatelessWidget {
                     Text('$index', style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w300,
-                        fontSize: widthCell / 2.5)
+                        fontSize: _sizes.cellText)
                     ),
                     _getSkipped(cell.lastProgressPosition),
                     _expanded(Opacity(opacity: 0))
@@ -223,13 +240,13 @@ class TablePage extends StatelessWidget {
     final end = start + 11;
     final size = min(Constants.width, Constants.height) / 6;
     return Stack(children: <Widget>[
-      _expanded(Container(color: Colors.green)),
+      Container(color: Colors.green),
       Center(
           child: column(<Widget>[
             _expanded(Opacity(opacity: 0)),
             Text("$start - $end", style: TextStyle(color: Colors.white,
                 fontWeight: FontWeight.w300,
-                fontSize: widthCell / 3)),
+                fontSize: _sizes.cellTextSkip)),
             StreamBuilder(
                 stream: _bloc.cellUpdate,
                 builder: (context, snapshot) => _getSkipped(_bloc.skippedDozen(dozen))
@@ -261,7 +278,7 @@ class TablePage extends StatelessWidget {
       style: TextStyle(
           color: Colors.black45,
           fontWeight: FontWeight.w600,
-          fontSize: widthCell / 3.2
+          fontSize: _sizes.cellTextSkip
       ));
   }
 
@@ -307,8 +324,8 @@ class TablePage extends StatelessWidget {
 
   Widget _roundedBlock(Widget widget, {double scaleX = 1, double scaleY = 1}) {
     return Container(
-      width: widthCell * scaleX,
-      height: widthCell * scaleY,
+      width: _sizes.cellWidth * scaleX,
+      height: _sizes.cellWidth * scaleY,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.all(radius),
           border: borderAll
@@ -320,8 +337,8 @@ class TablePage extends StatelessWidget {
   Widget _roundedWithoutTopLeftBlock(Widget widget,
       {double scaleX = 1, double scaleY = 1}) {
     return Container(
-      width: widthCell * scaleX,
-      height: widthCell * scaleY,
+      width: _sizes.cellWidth * scaleX,
+      height: _sizes.cellWidth * scaleY,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.only(
               topRight: radius, bottomLeft: radius, bottomRight: radius),
@@ -333,8 +350,8 @@ class TablePage extends StatelessWidget {
 
   Widget _leftBlock(Widget widget, {double scaleX = 1, double scaleY = 1}) {
     return Container(
-      width: widthCell * scaleX,
-      height: widthCell * scaleY,
+      width: _sizes.cellWidth * scaleX,
+      height: _sizes.cellWidth * scaleY,
       decoration: ShapeDecoration(
           shape: CustomBorder(borderWidth: 2,
               borderRadius: BorderRadius.only(
