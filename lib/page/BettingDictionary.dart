@@ -1,7 +1,3 @@
-import 'dart:math';
-
-import 'package:flutter/cupertino.dart';
-
 class BettingDictionary {
   static var bettSelected = 1;
 

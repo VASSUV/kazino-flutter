@@ -36,10 +36,14 @@ class TablePage extends StatelessWidget {
 
   final white = Colors.white;
 
-  final side = BorderSide(width: 2, color: Colors.white, style: BorderStyle.solid);
-  final borderAll = Border.all(width: 2, color: Colors.white, style: BorderStyle.solid);
+  final side = BorderSide(
+      width: 2, color: Colors.white, style: BorderStyle.solid);
+  final borderAll = Border.all(
+      width: 2, color: Colors.white, style: BorderStyle.solid);
 
   Radius get radius => Radius.circular(_sizes.radius);
+
+  Opacity get _opacity => Opacity(opacity: 0);
 
   @override
   Widget build(BuildContext context) {
@@ -48,12 +52,8 @@ class TablePage extends StatelessWidget {
       child: Column(
         children: <Widget>[
           _expanded(Align(alignment: Alignment.center, child:
-            StreamBuilder(
-              stream: _bloc.cellUpdate,
-              builder: (context, snapshot) {
-                return Text("Ход: ${_bloc.countProgress + 1}" , style: TextStyle(fontSize: _sizes.stepText, fontWeight: FontWeight.w500, color: Colors.white));
-              }
-            )
+          _bloc.cellUpdate.wrap(() =>
+              _textTitle("Ход: ${_bloc.countProgress + 1}"))
           )),
           Padding(
             padding: EdgeInsets.all(16.0),
@@ -62,7 +62,8 @@ class TablePage extends StatelessWidget {
                 height: _sizes.cellWidth * 4,
                 child: row(<Widget>[
                   _buildBingoes(),
-                  _roundedWithoutTopLeftBlock(_buildDozen(0), scaleY: 4, scaleX: 4),
+                  _roundedWithoutTopLeftBlock(
+                      _buildDozen(0), scaleY: 4, scaleX: 4),
                   Spacer(),
                   _roundedBlock(_buildDozen(1), scaleY: 4, scaleX: 4),
                   Spacer(),
@@ -81,6 +82,55 @@ class TablePage extends StatelessWidget {
     );
   }
 
+  Widget _expanded(Widget widget) => Expanded(child: widget);
+  Widget _buildVerticalSide() => Container(width: 2, color: white);
+  Widget _buildHorizontalSide() => Container(height: 2, color: white);
+
+  Text _textTitle(String text) => Text(text, style: TextStyle(
+          fontSize: _sizes.stepText,
+          fontWeight: FontWeight.w500,
+          color: Colors.white));
+
+  Text _textCell(int index) => Text('$index', style: TextStyle(
+      color: Colors.white,
+      fontWeight: FontWeight.w300,
+      fontSize: _sizes.cellText));
+
+  Text _textDozen(int start, int end) => Text("$start - $end",
+      style: TextStyle(color: Colors.white,
+        fontWeight: FontWeight.w300,
+        fontSize: _sizes.cellTextSkip));
+
+  Text _textBingo(int index, double textSize) => Text("Bingo $index",
+      style: TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.w300,
+        fontSize: textSize));
+
+  Text _textSkipped(int skipped) => Text("${skipped > 0 ? skipped : ''}",
+      style: TextStyle(
+          color: Colors.black45,
+          fontWeight: FontWeight.w600,
+          fontSize: _sizes.cellTextSkip));
+
+  RichText _textLine(int line, double size) {
+    return RichText(text: TextSpan(children: [
+      TextSpan(text: "$line", style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w500,
+          fontSize: size / 2.6)
+      ),
+      TextSpan(
+          text: " LINE",
+          style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+              fontSize: size / 5
+          )
+      )
+    ]));
+  }
+
   Widget _buildBingoes() {
     var widgets = <Widget>[ _buildZeroCell(37, _sizes.bingoesText)];
     if (_bloc.isBingo38) {
@@ -97,7 +147,7 @@ class TablePage extends StatelessWidget {
       _expanded(_buildRow(1)),
       _expanded(_buildRow(2)),
       _expanded(_buildRow(3)),
-      _expanded(Opacity(opacity: 0))
+      _expanded(_opacity)
     ]);
   }
 
@@ -109,67 +159,44 @@ class TablePage extends StatelessWidget {
           height: size,
           width: size * 1.5,
           decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(size / 2)),
-              border: borderAll,
-              color: Colors.green,
+            borderRadius: BorderRadius.all(Radius.circular(size / 2)),
+            border: borderAll,
+            color: Colors.green,
           ),
           child: Stack(
             children: <Widget>[
               Center(
                 child: column(<Widget>[
-                  _expanded(Opacity(opacity: 0)),
-                  RichText(
-                    text: TextSpan(
-                        children: [
-                          TextSpan(text: "$line", style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                              fontSize: size / 2.6)
-                          ),
-                          TextSpan(
-                              text: " LINE",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: size / 5
-                              )
-                          )
-                        ]
-                    ),
-                  ),
-                  StreamBuilder(
-                    stream: _bloc.cellUpdate,
-                    builder: (context, snapshot) => _getSkipped(_bloc.skippedInLine(line))
-                  ),
-                  _expanded(Opacity(opacity: 0)),
+                  _expanded(_opacity),
+                  _textLine(line, size),
+                  _bloc.cellUpdate.wrap(() {
+                    return _textSkipped(_bloc.skippedInLine(line));
+                  }),
+                  _expanded(_opacity),
                 ]),
               ),
-              _buildBetting(line)
+              _bloc.cellUpdate.wrap(() => _buildBetting(line))
             ],
           )
       ),
     );
   }
 
+
   Widget _buildBetting(int line) {
-    return StreamBuilder(
-      stream: _bloc.cellUpdate,
-      builder: (context, snapshot) {
-        int skipped = _bloc.skippedInLine(line);
-        var bett = BettingDictionary.betting(skipped);
-        if (skipped > 0 && bett != null) {
-          return _bettBadge(bett, Alignment.topRight);
-        } else {
-          return Opacity(opacity: 0);
-        }
-      }
-    );
+    int skipped = _bloc.skippedInLine(line);
+    var bett = BettingDictionary.betting(skipped);
+    if (skipped > 0 && bett != null) {
+      return _bettBadge(bett, Alignment.topRight);
+    } else {
+      return _opacity;
+    };
   }
 
   Widget _bettBadge(String bett, Alignment alignment) {
     return Align(alignment: alignment, child: Container(
-      height: _sizes.badge, width: _sizes.badge,
-      child: CustomPaint(painter: ShapesPainter(text: bett))
+        height: _sizes.badge, width: _sizes.badge,
+        child: CustomPaint(painter: ShapesPainter(text: bett))
     ));
   }
 
@@ -186,54 +213,35 @@ class TablePage extends StatelessWidget {
     ]);
   }
 
-  Widget _buildVerticalSide() {
-    return Container(width: 2, color: white);
-  }
 
-  Widget _buildHorizontalSide() {
-    return Container(height: 2, color: white);
-  }
-
-  Widget _buildFour(int position) {
-    return _expanded(row(<Widget>[
-      _expanded(_buildCell(position)),
-      _buildVerticalSide(),
-      _expanded(_buildCell(position + 3)),
-      _buildVerticalSide(),
-      _expanded(_buildCell(position + 6)),
-      _buildVerticalSide(),
-      _expanded(_buildCell(position + 9)),
-    ]));
-  }
+  Widget _buildFour(int position) => _expanded(row(<Widget>[
+    _expanded(_bloc.cellUpdate.wrap(() => _buildCell(position))),
+    _buildVerticalSide(),
+    _expanded(_bloc.cellUpdate.wrap(() => _buildCell(position + 3))),
+    _buildVerticalSide(),
+    _expanded(_bloc.cellUpdate.wrap(() => _buildCell(position + 6))),
+    _buildVerticalSide(),
+    _expanded(_bloc.cellUpdate.wrap(() => _buildCell(position + 9))),
+  ]));
 
   Widget _buildCell(int index) {
-    return StreamBuilder(
-        stream: _bloc.cellUpdate,
-        builder: (context, snapshot) {
-          var cell = _bloc.cellState(index);
-          return Material(
-            color: cell.type.color,
-            child: InkWell(
-              onTap: () {
-                _bloc.onTapCell(index);
-              },
-              child: Center(
-                  child: column(<Widget>[
-                    _expanded(Opacity(opacity: 0)),
-                    Text('$index', style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w300,
-                        fontSize: _sizes.cellText)
-                    ),
-                    _getSkipped(cell.lastProgressPosition),
-                    _expanded(Opacity(opacity: 0))
-                  ])
-              ),
-            ),
-          );
-        }
+    var cell = _bloc.cellState(index);
+    return Material(
+      color: cell.type.color,
+      child: InkWell(
+        onTap: () => _bloc.onTapCell(index),
+        child: Center(
+            child: column(<Widget>[
+              _expanded(_opacity),
+              _textCell(index),
+              _textSkipped(cell.lastProgressPosition),
+              _expanded(_opacity)
+            ])
+        ),
+      ),
     );
   }
+
 
   Widget _buildDozenCell(int dozen) {
     final start = (dozen - 1) * 12 + 1;
@@ -243,83 +251,45 @@ class TablePage extends StatelessWidget {
       Container(color: Colors.green),
       Center(
           child: column(<Widget>[
-            _expanded(Opacity(opacity: 0)),
-            Text("$start - $end", style: TextStyle(color: Colors.white,
-                fontWeight: FontWeight.w300,
-                fontSize: _sizes.cellTextSkip)),
-            StreamBuilder(
-                stream: _bloc.cellUpdate,
-                builder: (context, snapshot) => _getSkipped(_bloc.skippedDozen(dozen))
-            ),
-            _expanded(Opacity(opacity: 0)),
+            _expanded(_opacity),
+            _textDozen(start, end),
+            _bloc.cellUpdate.wrap(() => _textSkipped(_bloc.skippedDozen(dozen))),
+            _expanded(_opacity),
           ],
           )
       ),
-      StreamBuilder(
-        stream: _bloc.cellUpdate,
-        builder: (context, snapshot) {
-          int skipped =  _bloc.skippedDozen(dozen);
-          var bett = BettingDictionary.betting(skipped);
-          if (skipped > 0 && bett != null) {
-            return Padding(
-              padding: EdgeInsets.only(right: size/3),
-              child: _bettBadge(bett, Alignment.centerRight),
-            );
-          } else {
-            return Opacity(opacity: 0);
-          }
+      _bloc.cellUpdate.wrap(() {
+        int skipped = _bloc.skippedDozen(dozen);
+        var bett = BettingDictionary.betting(skipped);
+        if (skipped > 0 && bett != null) {
+          return Padding(
+            padding: EdgeInsets.only(right: size / 3),
+            child: _bettBadge(bett, Alignment.centerRight),
+          );
+        } else {
+          return _opacity;
         }
-      )
+      })
     ]);
   }
 
-  Text _getSkipped(int skipped) {
-    return Text("${skipped > 0 ? skipped : ''}",
-      style: TextStyle(
-          color: Colors.black45,
-          fontWeight: FontWeight.w600,
-          fontSize: _sizes.cellTextSkip
-      ));
-  }
 
   Widget _buildZeroCell(int index, double textSize) {
-    return _expanded(StreamBuilder(
-        stream: _bloc.cellUpdate,
-        builder: (context, snapshot) {
-          final cell = _bloc.cellState(index);
-          return Material(
-            color: _bloc
-                .cellState(index)
-                .type
-                .color,
-            child: InkWell(
-              onTap: () {
-                _bloc.onTapCell(index);
-              },
-              child: Center(
-                  child: row(<Widget>[
-                    _expanded(Opacity(opacity: 0)),
-                    RotatedBox(
-                        quarterTurns: 3,
-                        child: Text("Bingo $index", style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w300,
-                            fontSize: textSize))),
-                    RotatedBox(
-                        quarterTurns: 3,
-                        child: _getSkipped(cell.lastProgressPosition)),
-                    _expanded(Opacity(opacity: 0))
-                    ],
-                  )
-              ),
-            ),
-          );
-        }
-    ));
-  }
-
-  Widget _expanded(Widget widget) {
-    return Expanded(child: widget);
+    return _expanded(_bloc.cellUpdate.wrap(() {
+      final cell = _bloc.cellState(index);
+      return Material(
+        color: _bloc.cellState(index).type.color,
+        child: InkWell(
+          onTap: () => _bloc.onTapCell(index),
+          child: Center(child: row(<Widget>[
+            _expanded(_opacity),
+            RotatedBox(quarterTurns: 3, child: _textBingo(index, textSize)),
+            RotatedBox(quarterTurns: 3, child: _textSkipped(cell.lastProgressPosition)),
+            _expanded(_opacity)
+          ])),
+        ),
+      );
+    }));
   }
 
   Widget _roundedBlock(Widget widget, {double scaleX = 1, double scaleY = 1}) {
@@ -334,8 +304,7 @@ class TablePage extends StatelessWidget {
     );
   }
 
-  Widget _roundedWithoutTopLeftBlock(Widget widget,
-      {double scaleX = 1, double scaleY = 1}) {
+  Widget _roundedWithoutTopLeftBlock(Widget widget, {double scaleX = 1, double scaleY = 1}) {
     return Container(
       width: _sizes.cellWidth * scaleX,
       height: _sizes.cellWidth * scaleY,
@@ -364,64 +333,22 @@ class TablePage extends StatelessWidget {
   bool _isRed(int num, int start, int end) {
     return num >= start && num <= end && num % 2 == start % 2;
   }
-  
+
   Widget _buildProgressList() {
     final height = min(Constants.width, Constants.height) / 6;
     return Container(
         height: height,
         color: Colors.grey,
         child: row(<Widget>[
-          _expanded(StreamBuilder(
-              stream: _bloc.cellUpdate,
-              builder: (context, snapshot) {
-                return ListView.builder(
-                    itemCount: _bloc.countProgress,
-                    scrollDirection: Axis.horizontal,
-                    reverse: true,
-                    itemBuilder: (BuildContext context, int index) {
-                      final cell = _bloc.progressCell(index);
-                      Widget numberWidget;
-                      final size = height / 4;
-                      Color color = Colors.white;
-                      Color textColor = Colors.white;
-                      Alignment alignment = Alignment.center;
-                      
-                      if (cell >= 37) {
-                        textColor = Colors.black;
-                      } else if (_isRed(cell, 1, 9) || _isRed(cell, 12, 18) || _isRed(cell, 19, 27) || _isRed(cell, 30, 36)) {
-                        alignment = Alignment.topCenter;
-                        color = Colors.red;
-                      } else {
-                        alignment = Alignment.bottomCenter;
-                        color = Colors.black;
-                      }
-                      final decoration = BoxDecoration(
-                          color: color,
-                          borderRadius: BorderRadius.all(Radius.circular(size/2))
-                      );
-
-                      numberWidget = Align(alignment: alignment,
-                          child: Container(
-                              width: size,
-                              height: size,
-                              decoration: decoration,
-                              child: Center(
-                                child: Text("$cell",
-                                    style: TextStyle(color: textColor, fontSize: height / 6)),
-                              )));
-
-
-                      return Container(
-                        width: height / 3,
-                        child: column(<Widget>[
-                          _expanded(numberWidget),
-                          Text("${_bloc.countProgress - index}",
-                              style: TextStyle(fontSize: height / 6)),
-                        ]),
-                      );
-                    }
-                );
-              }
+          _expanded(_bloc.cellUpdate.wrap(() =>
+              ListView.builder(
+                  itemCount: _bloc.countProgress,
+                  scrollDirection: Axis.horizontal,
+                  reverse: true,
+                  itemBuilder: (BuildContext context, int index) {
+                    return _buildProgressItem(index, height);
+                  }
+              )
           )),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -431,6 +358,52 @@ class TablePage extends StatelessWidget {
             ),
           )
         ])
+    );
+  }
+
+  Container _buildProgressItem(int index, double height) {
+    final cell = _bloc.progressCell(index);
+    Widget numberWidget;
+    final size = height / 4;
+    Color color = Colors.white;
+    Color textColor = Colors.white;
+    Alignment alignment = Alignment.center;
+
+    if (cell >= 37) {
+      textColor = Colors.black;
+    } else if (_isRed(cell, 1, 9) || _isRed(cell, 12, 18) ||
+        _isRed(cell, 19, 27) || _isRed(cell, 30, 36)) {
+      alignment = Alignment.topCenter;
+      color = Colors.red;
+    } else {
+      alignment = Alignment.bottomCenter;
+      color = Colors.black;
+    }
+    final decoration = BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.all(
+            Radius.circular(size / 2))
+    );
+
+    numberWidget = Align(alignment: alignment,
+        child: Container(
+            width: size,
+            height: size,
+            decoration: decoration,
+            child: Center(
+              child: Text("$cell",
+                  style: TextStyle(
+                      color: textColor, fontSize: height / 6)),
+            )));
+
+
+    return Container(
+      width: height / 3,
+      child: column(<Widget>[
+        _expanded(numberWidget),
+        Text("${_bloc.countProgress - index}",
+            style: TextStyle(fontSize: height / 6)),
+      ]),
     );
   }
 }

@@ -1,9 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'page/TablePage.dart';
-import 'page/TablePage.dart';
-
 extension ContextRoute on BuildContext {
   Function routerTo<T extends StatelessWidget>(T page) {
     return () {
@@ -49,4 +46,8 @@ extension ListExtension<T> on List<T> {
       this[i] = func(i+1);
     }
   }
+}
+
+extension StreamExtension on Stream {
+  Widget wrap(Widget Function() f) => StreamBuilder(stream: this, builder: (c, s) => f());
 }
