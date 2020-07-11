@@ -1,7 +1,7 @@
 import 'package:kazino/WidgetExtensions.dart';
 
 enum CellStateType {
-  none, orange, lightBlue
+  none, orange, yellow, lightBlue
 }
 
 class CellState {
@@ -10,14 +10,23 @@ class CellState {
   int lastProgressPosition = 0;
 }
 
+class ProgressState{
+  CellStateType type;
+  int value;
+
+  ProgressState(this.type, this.value);
+}
+
 class Counter {
   static Counter shared = Counter();
 
   final _hotRange = 50;
   final _coldRange = 50;
   final _minCountAsHot = 3;
+  final _yellowRange = 37;
+  final _minCountForYellow = 2;
 
-  List<int> progressList = [];
+  List<ProgressState> progressList = [];
   List<CellState> states = List.generate(38, (index) => CellState());
   List<int> skippedLine = List.generate(3, (index) => 0);
   List<int> skippedDozen = List.generate(3, (index) => 0);
@@ -25,8 +34,12 @@ class Counter {
 
 
   void add(int num) {
-    progressList.insert(0, num);
+    var type = states[num - 1].type;
+    progressList.insert(0, ProgressState(type, num));
     _updateStates();
+    if(type != CellStateType.lightBlue) {
+      progressList[0] = ProgressState(states[num - 1].type, num);
+    }
   }
 
   void back() {
@@ -41,9 +54,14 @@ class Counter {
 
     var tempPositions = List<int>.generate(38, (index) => index);
     for (var i = 0; i < progressList.length; i++) {
-      var pos = progressList[i] - 1;
-      if (i < _hotRange && i < _coldRange) {
-        _increment(states[pos]);
+      var pos = progressList[i].value - 1;
+      if (!(i >= _hotRange && i >= _coldRange && i >= _yellowRange)) {
+        states[pos].countAsHot++;
+        if (states[pos].countAsHot >= _minCountAsHot) {
+          states[pos].type = CellStateType.orange;
+        } else if (states[pos].countAsHot >= _minCountForYellow && i < _yellowRange) {
+          states[pos].type = CellStateType.yellow;
+        }
       }
       final posInTempPositions = tempPositions.indexOf(pos);
       if (states[pos].lastProgressPosition == -1 && posInTempPositions >= 0) {
@@ -63,11 +81,11 @@ class Counter {
     }
 
     skippedLine.fill((int line) {
-      final skip = progressList.indexWhere((num) => num < 37 && (3 - (num % 3)) % 3 + 1 == line);
+      final skip = progressList.indexWhere((item) => item.value < 37 && (3 - (item.value % 3)) % 3 + 1 == line);
       return skip == -1 ? progressList.length : skip;
     });
     skippedDozen.fill((dozen) {
-      final skip = progressList.indexWhere((num) => (num + 11) ~/ 12 == dozen);
+      final skip = progressList.indexWhere((item) => (item.value + 11) ~/ 12 == dozen);
       return skip == -1 ? progressList.length : skip;
     });
   }
@@ -76,13 +94,6 @@ class Counter {
     state.type = CellStateType.none;
     state.countAsHot = 0;
     state.lastProgressPosition = -1;
-  }
-
-  void _increment(CellState state) {
-    state.countAsHot++;
-    if (state.countAsHot >= _minCountAsHot) {
-      state.type = CellStateType.orange;
-    }
   }
 
   void _checkCold(CellState state) {

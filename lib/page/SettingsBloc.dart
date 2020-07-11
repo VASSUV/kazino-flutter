@@ -5,7 +5,6 @@ import 'package:kazino/domain/Counter.dart';
 import 'package:kazino/page/BettingDictionary.dart';
 
 class SettingsBloc {
-
   var _output = StreamController.broadcast();
   Stream get update => _output.stream;
 
@@ -17,8 +16,8 @@ class SettingsBloc {
     Counter.shared.changeBingoState();
   }
 
-  void onChangeRow(int row) {
-    BettingDictionary.bettSelected = row;
+  void bettStartChange(double value) {
+    BettingDictionary.bettStart = value.toInt() - 1;
     _output.add(null);
   }
 }

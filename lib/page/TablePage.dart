@@ -363,16 +363,17 @@ class TablePage extends StatelessWidget {
 
   Container _buildProgressItem(int index, double height) {
     final cell = _bloc.progressCell(index);
+    final value = cell.value;
     Widget numberWidget;
     final size = height / 4;
     Color color = Colors.white;
     Color textColor = Colors.white;
     Alignment alignment = Alignment.center;
 
-    if (cell >= 37) {
+    if (value >= 37) {
       textColor = Colors.black;
-    } else if (_isRed(cell, 1, 9) || _isRed(cell, 12, 18) ||
-        _isRed(cell, 19, 27) || _isRed(cell, 30, 36)) {
+    } else if (_isRed(value, 1, 9) || _isRed(value, 12, 18) ||
+        _isRed(value, 19, 27) || _isRed(value, 30, 36)) {
       alignment = Alignment.topCenter;
       color = Colors.red;
     } else {
@@ -391,7 +392,7 @@ class TablePage extends StatelessWidget {
             height: size,
             decoration: decoration,
             child: Center(
-              child: Text("$cell",
+              child: Text("${cell.value}",
                   style: TextStyle(
                       color: textColor, fontSize: height / 6)),
             )));
@@ -400,6 +401,12 @@ class TablePage extends StatelessWidget {
     return Container(
       width: height / 3,
       child: column(<Widget>[
+        Container(
+            margin: EdgeInsets.symmetric(vertical: 2),
+            color: cell.type.progressColor,
+            width: height / 9,
+            height: height / 9
+        ),
         _expanded(numberWidget),
         Text("${_bloc.countProgress - index}",
             style: TextStyle(fontSize: height / 6)),

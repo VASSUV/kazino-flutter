@@ -38,27 +38,16 @@ class SettingsPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.all(24.0),
                     child: Center(
-                      child: Text("Последовательности")
+                      child: Text("Ход с которого показывается ставка (${BettingDictionary.bettStart + 1})")
                     )
                   ),
-                  Row(
-                    children: <Widget>[
-                      Expanded(child: Opacity(opacity: 0)),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Button(title: "№ 1", enabled: BettingDictionary.bettSelected == 2, onPressed: () {
-                           _bloc.onChangeRow(1);
-                        }),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Button(title: "№ 2", enabled: BettingDictionary.bettSelected == 1, onPressed: () {
-                          _bloc.onChangeRow(2);
-                        }),
-                      ),
-                      Expanded(child: Opacity(opacity: 0))
-                    ],
-                  )
+                  Slider(
+                      min: 8,
+                      max: 18,
+                      divisions: 100,
+                      label: (BettingDictionary.bettStart + 1).toString(),
+                      value: (BettingDictionary.bettStart + 1).toDouble(),
+                      onChanged: _bloc.bettStartChange)
                 ],
               ),
             ),
