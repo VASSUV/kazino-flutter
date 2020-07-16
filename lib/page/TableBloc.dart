@@ -36,9 +36,9 @@ extension CellStateExtension on CellStateType {
   Color get color {
     switch (this) {
       case CellStateType.orange:
-        return Colors.red[400];
+        return Colors.orange;
       case CellStateType.yellow:
-        return Colors.yellow[700];
+        return Colors.yellow[600];
       case CellStateType.lightBlue:
         return Colors.lightBlue[700];
       default:
@@ -49,9 +49,9 @@ extension CellStateExtension on CellStateType {
   Color get progressColor {
     switch (this) {
       case CellStateType.orange:
-        return Colors.red[400];
+        return Colors.orange;
       case CellStateType.yellow:
-        return Colors.yellow[700];
+        return Colors.yellow[600];
       case CellStateType.lightBlue:
         return Colors.lightBlue[700];
       default:
