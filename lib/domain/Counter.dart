@@ -1,45 +1,39 @@
-import 'package:kazino/WidgetExtensions.dart';
+import 'dart:math';
 
-enum CellStateType {
-  none, orange, yellow, lightBlue
-}
+import 'package:flutter/material.dart';
+import 'package:moneywheel/WidgetExtensions.dart';
 
 class CellState {
-  CellStateType type = CellStateType.none;
-  int countAsHot = 0;
-  int lastProgressPosition = 0;
-}
-
-class ProgressState{
-  CellStateType type;
-  int value;
-
-  ProgressState(this.type, this.value);
+  int hot = -1;
+  int cold = 0;
 }
 
 class Counter {
+
   static Counter shared = Counter();
 
-  final _hotRange = 50;
-  final _coldRange = 50;
-  final _minCountAsHot = 3;
-  final _yellowRange = 37;
-  final _minCountForYellow = 2;
+  static List<int> nums = [
+    48, 24, 16, 12,
+    6, 4, 2
+  ];
 
-  List<ProgressState> progressList = [];
-  List<CellState> states = List.generate(38, (index) => CellState());
-  List<int> skippedLine = List.generate(3, (index) => 0);
-  List<int> skippedDozen = List.generate(3, (index) => 0);
-  var isBingo38 = true;
+  static List<Color> colors = [
+    Colors.yellow[600], Colors.red[600], Colors.pink[700], Colors.blue[800],
+    Colors.green[600], Colors.cyan[400], Colors.grey[900]
+  ];
 
+  static List<Color> textColors = [
+    Colors.red, Colors.yellow[700], Colors.white, Colors.white,
+    Colors.white, Colors.white, Colors.white
+  ];
 
-  void add(int num) {
-    var type = states[num - 1].type;
-    progressList.insert(0, ProgressState(type, num));
+  List<int> progressList = [];
+
+  List<CellState> states = List.generate(nums.length, (index) => CellState());
+
+  void add(int position) {
+    progressList.insert(0, position);
     _updateStates();
-    if(type != CellStateType.lightBlue) {
-      progressList[0] = ProgressState(states[num - 1].type, num);
-    }
   }
 
   void back() {
@@ -50,67 +44,32 @@ class Counter {
   }
 
   void _updateStates() {
-    states.forEach((state) => _reset(state));
-
-    var tempPositions = List<int>.generate(38, (index) => index);
-    for (var i = 0; i < progressList.length; i++) {
-      var pos = progressList[i].value - 1;
-      if (!(i >= _hotRange && i >= _coldRange && i >= _yellowRange)) {
-        states[pos].countAsHot++;
-        if (states[pos].countAsHot >= _minCountAsHot) {
-          states[pos].type = CellStateType.orange;
-        } else if (states[pos].countAsHot >= _minCountForYellow && i < _yellowRange) {
-          states[pos].type = CellStateType.yellow;
-        }
-      }
-      final posInTempPositions = tempPositions.indexOf(pos);
-      if (states[pos].lastProgressPosition == -1 && posInTempPositions >= 0) {
-        states[pos].lastProgressPosition = i;
-        tempPositions.removeAt(posInTempPositions);
-        if(tempPositions.length == 0) {
-          break;
-        }
-      }
-    }
-    if(tempPositions.length > 0) {
-      tempPositions.forEach((pos) => states[pos].lastProgressPosition = progressList.length);
-    }
-
-    if(progressList.length >= _coldRange) {
-      states.forEach((state) => _checkCold(state));
-    }
-
-    skippedLine.fill((int line) {
-      final skip = progressList.indexWhere((item) => item.value < 37 && (3 - (item.value % 3)) % 3 + 1 == line);
-      return skip == -1 ? progressList.length : skip;
+    final maxCount = progressList.length;
+    final length = min(100, maxCount);
+    states.forEach((state) {
+      state.hot = maxCount;
+      state.cold = 0;
     });
-    skippedDozen.fill((dozen) {
-      final skip = progressList.indexWhere((item) => (item.value + 11) ~/ 12 == dozen);
-      return skip == -1 ? progressList.length : skip;
-    });
-  }
 
-  void _reset(CellState state) {
-    state.type = CellStateType.none;
-    state.countAsHot = 0;
-    state.lastProgressPosition = -1;
-  }
-
-  void _checkCold(CellState state) {
-    if (state.countAsHot <= 0) {
-      state.type = CellStateType.lightBlue;
+    for(int i = 0; i < length; i ++) {
+      var position = progressList[i];
+      var state = states[position];
+      state.hot = state.hot == maxCount ? i : state.hot;
+      state.cold++;
+    }
+    for(int i = 100; i < maxCount; i ++) {
+      var position = progressList[i];
+      var state = states[position];
+      state.hot = state.hot == maxCount ? i : state.hot;
     }
   }
 
-  void reset() {
+  void clean() {
     progressList.clear();
-    states.forEach((state) => _reset(state));
-    skippedDozen = List.generate(3, (index) => 0);
-    skippedLine = List.generate(3, (index) => 0);
-  }
-
-  void changeBingoState() {
-    isBingo38 = !isBingo38;
-    reset();
+    states.forEach((state) {
+      state.hot = 0;
+      state.cold = 0;
+    });
+    _updateStates();
   }
 }

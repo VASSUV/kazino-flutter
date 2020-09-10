@@ -1,133 +1,124 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:kazino/domain/Counter.dart';
-import 'package:kazino/page/BettingDictionary.dart';
-import 'package:kazino/widget/Button.dart';
+import 'package:flutter/widgets.dart';
 
-import 'SettingsBloc.dart';
+class SettingsPage extends StatefulWidget {
 
-class SettingsPage extends StatelessWidget {
-  SettingsBloc _bloc = SettingsBloc();
+  final void Function() undo;
+  final void Function() clean;
+
+  const SettingsPage({Key key, this.undo, this.clean}) : super(key: key);
+
+  @override
+  _SettingsPageState createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: _bloc.update,
-      builder: (context, snapshot) {
-        return ListView(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: <Widget>[
-                  Text("Настройки",
-                      textAlign: TextAlign.center, textScaleFactor: 3),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Button(title: "Очистить", onPressed: () {
-                      _showDialog(context, "Очистка поля", "Состояние прохождения нельзя будет вернуть, очистить поле?", _bloc.onClearChanged);
-                    }),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Button(title: "Сменить режим", onPressed: () {
-                      _showDialog(context, "Смена режима", "Прохождение будет сброшено и режим будет сменен на ${Counter.shared.isBingo38 ? 37 : 38} чисел, сменить режим?", _bloc.onChange);
-                    }),
-                  ),
-
-                  Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Center(
-                      child: Text("Ход с которого показывается ставка (${BettingDictionary.bettStart + 1})")
-                    )
-                  ),
-                  Slider(
-                      min: 8,
-                      max: 18,
-                      divisions: 100,
-                      label: (BettingDictionary.bettStart + 1).toString(),
-                      value: (BettingDictionary.bettStart + 1).toDouble(),
-                      onChanged: _bloc.bettStartChange)
-                ],
+    return SafeArea(
+          child: Stack(
+            children: [
+              BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                  child: Container(color: Colors.white.withAlpha(40))
               ),
-            ),
-          ],
-        );
-      }
+              Row(
+                  children: [
+                    Expanded(child: Opacity(opacity: 0), flex: 1),
+                    Expanded(child: _buildWorkArea(), flex: 2),
+                  ],
+                ),
+            ],
+          )
     );
   }
 
-  void _showDialog(BuildContext context, String title, String description, Function onApply) {
-    // flutter defined function
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        // return object of type Dialog
-        return AlertDialog(
-          title: Text(title),
-          content: Text(description),
-          actions: <Widget>[
-            FlatButton(
-              child: Text("Да"),
-              onPressed: () {
-                Navigator.of(context).pop();
-                onApply();
-              }),
-          ],
+  Widget _buildWorkArea() {
+    return Stack(
+      children: [
+        Column(
+            children: [
+              Expanded(
+                flex: 1,
+                child: Container(color: Colors.black),
+              ),
+              Expanded(flex: 10, child: _buildSettingsArea()),
+              Spacer(),
+              Container(height: 48.0 * 7),
+              Spacer()
+            ]
+        ),
+        Align(
+          alignment: Alignment.topRight,
+          child: Material(
+            color: Colors.black,
+            child: Builder(
+              builder: (context) => IconButton(
+                color: Colors.white,
+                onPressed: () => Navigator.of(context).pop(),
+                icon: Icon(Icons.close),
+              ),
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _buildSettingsArea() {
+    final style = TextStyle(color: Colors.white);
+    Widget undoButton = FlatButton(
+      child: Text("Вернуть ход", style: style),
+      onPressed: () {
+        widget.undo();
+        Navigator.of(context).pop();
+      },
+    );
+    Widget cleanButton = FlatButton(
+      child: Text("Сбросить", style: style),
+      onPressed: () {
+        Widget okButton = FlatButton(
+          child: Text("OK"),
+          onPressed: () {
+            widget.clean();
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+          },
+        );
+        Widget cancelButton = FlatButton(
+          child: Text("Отменить"),
+          onPressed: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+          },
+        );
+
+        AlertDialog alert = AlertDialog(
+          title: Text("Сброс прогресса"),
+          content: Text("Прогресс уничтожится безвозвратно, продолжить?"),
+          actions: [okButton, cancelButton],
+        );
+
+        showDialog(
+          context: context,
+          builder: (context) => alert,
         );
       },
     );
+    return Container(
+      color: Colors.black,
+      child: Stack(
+        children: [
+          Opacity(opacity: 0, child: Image.asset("assets/logo.png")),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Center(child: Column(children: [undoButton, cleanButton])),
+          )
+        ],
+      )
+    );
   }
-
-//
-//  StreamBuilder _buildSliderDescription() {
-//    return StreamBuilder(
-//        stream: _bloc.sliderChange,
-//        builder: (context, snapshot) {
-//          return Text("${_bloc.sliderValue.round()}", textScaleFactor: 2, textAlign: TextAlign.center);
-//        });
-//  }
-//  StreamBuilder _buildTwiceCheckBox() {
-//    return StreamBuilder(
-//        stream: _bloc.twiceChange,
-//        builder: (context, snapshot) {
-//          return Row(children: <Widget>[
-//            Checkbox(value: _bloc.twiceValue, onChanged: _bloc.onTwiceChanged),
-//            Text(
-//              "Показывать числа выпавшие 2 раза за 37 ходов в течении 37 ходов",
-//            )
-//          ]);
-//        });
-//  }
-//
-//  StreamBuilder _buildHotCheckBox() {
-//    return StreamBuilder(
-//        stream: _bloc.hotChange,
-//        builder: (context, snapshot) {
-//          return Row(children: <Widget>[
-//            Checkbox(value: _bloc.hotValue, onChanged: _bloc.onHotChanged),
-//            Text(
-//              "Показывать горячие числа (3 и более выпадений за 50 ходов)",
-//            )
-//          ]);
-//        });
-//  }
-//
-//  StreamBuilder _buildSlider() {
-//    return StreamBuilder(
-//        stream: _bloc.sliderChange,
-//        builder: (context, snapshot) {
-//          return Slider(
-//              value: _bloc.sliderValue,
-//              min: 15.0,
-//              max: 100.0,
-//              activeColor: Colors.red,
-//              inactiveColor: Colors.black,
-//              label: '${_bloc.sliderValue} f',
-//              onChanged: _bloc.onSliderChanged,
-//              semanticFormatterCallback: (double newValue) {
-//                return '${newValue.round()} 8';
-//              });
-//        });
-//  }
 }
