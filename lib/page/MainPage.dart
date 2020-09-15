@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:moneywheel/NoAnimationPageRoute.dart';
 import 'package:moneywheel/domain/Counter.dart';
+import 'package:moneywheel/domain/Settings.dart';
 import 'package:moneywheel/page/SettingsPage.dart';
 
 import 'MainBloc.dart';
@@ -38,8 +39,8 @@ class _MainPageState extends State<MainPage> {
               stream: _bloc.output.stream,
               builder: (context, snapshot) => Row(
                 children: [
-                  Expanded(child: _buildList(), flex: 1),
-                  Expanded(child: _buildWorkArea(), flex: 2),
+                  _buildList(),
+                  Expanded(child: _buildWorkArea()),
                 ],
               ),
             )
@@ -48,11 +49,35 @@ class _MainPageState extends State<MainPage> {
   }
 
   Widget _buildList() {
-    return Container (
-      color: Colors.black.withAlpha(240),
-      child: ListView.builder(
-          itemCount: Counter.shared.progressList.length,
-          itemBuilder: (context, index) => _buildListItem(index)
+    return AnimatedContainer (
+      width: Counter.shared.progressList.length == 0 ? 0 : MediaQuery.of(context).size.width/4,
+      duration: Duration(milliseconds: 400),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        reverse: true,
+        child: Container(
+          color: Colors.black.withAlpha(240),
+          width: MediaQuery.of(context).size.width/4,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric (vertical: 8.0),
+                child: RaisedButton(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric (vertical: 8.0),
+                    child: Text("Вернуть\n1 ход", textAlign: TextAlign.center),
+                  ), onPressed: _bloc.undo,
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                    itemCount: Counter.shared.progressList.length,
+                    itemBuilder: (context, index) => _buildListItem(index)
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -78,12 +103,29 @@ class _MainPageState extends State<MainPage> {
                 color: Colors.white,
                 onPressed: () => Navigator.of(context).push(TransparentRoute(
                     builder: (context) => SettingsPage(
-                      undo: _bloc.undo,
                       clean: _bloc.clean,
                     )
-                  )
+                )
                 ),
                 icon: Icon(Icons.settings),
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.topLeft,
+            child: Builder(
+              builder: (context) => Row(
+                children: [
+                  IconButton(
+                    color: Settings().isSafety ? Colors.green : Colors.red,
+                    onPressed: () {},
+                    icon: Icon(Icons.error_outline),
+                  ),
+                  Text(
+                      Settings().isSafety ? "Безопасный режим" : "Не безопасный режим",
+                      style: TextStyle(color: Settings().isSafety ? Colors.green : Colors.red)
+                  )
+                ],
               ),
             ),
           )
@@ -112,8 +154,8 @@ class _MainPageState extends State<MainPage> {
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildCountText(Counter.shared.progressList.length - index - 1),
-        _buildItem(Counter.shared.progressList[index]),
+        _buildCountText(Counter.shared.progressList.length - index - 1, scale: 0.9),
+        _buildItem(Counter.shared.progressList[index], scale: 0.8),
       ],
     );
   }
@@ -123,29 +165,55 @@ class _MainPageState extends State<MainPage> {
       color: Colors.black,
       child: InkWell(
         onTap: () => _bloc.onTap(i),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Stack(
           children: [
-            _buildCountText(Counter.shared.states[i].cold),
-            _buildItem(i),
-            _buildCountText(Counter.shared.states[i].hot)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildCountText(Counter.shared.states[i].hot),
+                _buildItem(i, scale: 1.5),
+                _buildCountText(Counter.shared.states[i].cold)
+              ],
+            ),
+            if(i == 4) _buildBet(i)
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCountText(int count) {
+  Widget _buildBet(int i) {
+    final hot = Counter.shared.states[i].hot;
+    final bet = Settings().bet(hot);
+    return Padding(
+      padding: const EdgeInsets.only(left: 36.0),
+      child: Opacity(
+            opacity: bet == 0 ? 0 : 1,
+            child: Container(
+              padding: EdgeInsets.all(4.0),
+              decoration: new BoxDecoration(
+                color: Colors.teal,
+                border: Border.all(color: Colors.black, width: 0.0),
+                borderRadius: new BorderRadius.all(Radius.elliptical(50,50)),
+              ),
+              child: Text(bet.toString(),
+                style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),),
+            ),
+      ),
+    );
+  }
+
+  Widget _buildCountText(int count, {double scale = 1}) {
     return Container(
-        width: 80,
-        height: 32,
+        width: 60 * scale,
+        height: 32 * scale,
       child: Center(
         child: Text(
           count <= 0 ? '-' : count.toString(),
           style: TextStyle(
-              fontSize: 18,
+              fontSize: 18 * scale,
               fontWeight: FontWeight.bold,
               color: Colors.white
           )
@@ -154,10 +222,10 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-  Widget _buildItem(int position) {
+  Widget _buildItem(int position, {double scale = 1}) {
     return Container(
-      width: 24,
-      height: 32,
+      width: 24 * scale,
+      height: 32 * scale,
       margin: EdgeInsets.all(8),
       child: Stack(
         children: [
@@ -174,7 +242,7 @@ class _MainPageState extends State<MainPage> {
             child: Text(
                 Counter.nums[position].toString(),
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 18 * scale,
                   fontWeight: FontWeight.bold,
                   color: Counter.textColors[position]
               )

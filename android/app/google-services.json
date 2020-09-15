@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "487051704352",
+    "firebase_url": "https://manywheel-dd0f8.firebaseio.com",
+    "project_id": "manywheel-dd0f8",
+    "storage_bucket": "manywheel-dd0f8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:487051704352:android:0cecbeae6fdcec40ef2445",
+        "android_client_info": {
+          "package_name": "ru.vassuv.moneywheel"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "487051704352-1jd85ed3b2sg4br07cg40o1dnoj69e19.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCgQSSvilDK81dFZMF6i-0w0rcyP4VZ3uU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "487051704352-1jd85ed3b2sg4br07cg40o1dnoj69e19.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
