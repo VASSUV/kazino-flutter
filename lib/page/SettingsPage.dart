@@ -7,6 +7,8 @@ import 'package:moneywheel/domain/AppModel.dart';
 import 'package:moneywheel/domain/Counter.dart';
 import 'package:moneywheel/domain/Settings.dart';
 
+import 'AdminPage.dart';
+
 class SettingsPage extends StatefulWidget {
 
   final void Function() clean;
@@ -132,7 +134,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 )
               ),
               SizedBox(height: 40),
-              cleanButton
+              cleanButton,
+              SizedBox(height: 40),
+              if(AppModel.I.admin.value) adminButton()
             ])),
           )
         ],
@@ -168,4 +172,13 @@ class _SettingsPageState extends State<SettingsPage> {
     }
     return "Зал";
   }
+
+  Widget adminButton() => Material(
+    child: ListTile(
+      title: Text("Админ Панель"),
+      onTap: () => Navigator.of(context).push(CupertinoPageRoute(
+          builder: (context) => AdminPage()
+      )),
+    ),
+  );
 }

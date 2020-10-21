@@ -58,7 +58,13 @@ abstract class Codable {
   String toString() => _data.toString();
 }
 
-class CodableArray{
-  static List<T> from<T>(dynamic data, T mapFunc(dynamic)) =>
-      data is Iterable ? (data as List).map(mapFunc).toList() : List();
+class CodableArray {
+  static List<T> from<T>(dynamic data, T mapFunc(dynamic)) {
+    var isList = data is Iterable;
+    if(isList) {
+      var value = (data as List);
+      var mappedValue = value.map(mapFunc);
+      return mappedValue.toList();
+    } else return List();
+  }
 }

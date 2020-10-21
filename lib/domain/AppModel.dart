@@ -25,6 +25,7 @@ class AppModel {
 
   var connected = false;
   final loading = ValueNotifier(LoadState.LOAD);
+  final admin = ValueNotifier(false);
 
   final site = ValueNotifier(false);
   final vip = ValueNotifier(false);
@@ -103,10 +104,13 @@ class AppModel {
             vip.value = event.snapshot.value ?? false;
             checkAvailable();
           });
+          uid.child("admin").onValue.listen((event) {
+            admin.value = event.snapshot.value ?? false;
+          });
         }
       } catch (error) {
         print(error);
-        loading.value = LoadState.ERROR;
+        if(!connected) loading.value = LoadState.ERROR;
       }
     });
   }
